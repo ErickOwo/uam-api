@@ -13,8 +13,8 @@ const schemaRegister = Joi.object({
 })
 
 const schemaLogin = Joi.object({
-  email: Joi.string().min(6).max(260).required().email(),
-  password: Joi.string().min(8).max(1024).required(),
+  email: Joi.string().max(260).required().email(),
+  password: Joi.string().max(1024).required(),
 })
 
 router.post('/user', async (req, res)=>{
@@ -41,7 +41,6 @@ router.post('/user', async (req, res)=>{
 
 router.post('/login', async (req, res)=>{
 
-  console.log(req.body)
   const { error } = schemaLogin.validate(req.body);
   if(error) return res.status(400).json({ error: error.details[0].message });
 
@@ -60,7 +59,7 @@ router.post('/login', async (req, res)=>{
   res.header('auth-token', access_token).json({ 
     error: null, 
     message: "Bienvenido", 
-    data: access_token });
+    access_token });
 })
 
 module.exports = router;
