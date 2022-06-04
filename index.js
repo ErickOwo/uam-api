@@ -6,6 +6,8 @@ const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 
+require('dotenv').config();
+
 const users = require('./src/routes/auth')
 const verifyToken = require('./src/routes/validate-token');
 const messages = require('./src/routes/messages');
@@ -13,7 +15,6 @@ const galleryPrincipal = require('./src/routes/galleryprincipal');
 
 const app = express();
 
-require('dotenv').config();
 
 app.set('port', process.env.PORT || 3005);
 
@@ -24,7 +25,7 @@ mongoose.connect(uri,{useNewUrlParser: true}).then(()=>{
 })
 
 app.use(cors({
-  origin: process.env.ORIGIN
+  origin: 'https://admin-uam.vercel.app/'
 }))
 
 app.use(bodyParser.json());
