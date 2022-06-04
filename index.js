@@ -24,9 +24,7 @@ mongoose.connect(uri,{useNewUrlParser: true}).then(()=>{
   console.log('base de datos conectada')
 })
 
-app.use(cors({
-  origin: 'https://admin-uam.vercel.app/'
-}))
+app.use(cors());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
