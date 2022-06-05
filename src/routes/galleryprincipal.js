@@ -47,4 +47,23 @@ router.post('/galleryprincipal/add', async (req, res)=>{
   }
 })
 
+router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+  try{
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    })
+
+    const { photo_id } = req.params;
+    const photo = await Photo.findByIdAndDelete(photo_id);
+    await cloudinary.uploader.destroy(photo.public_id);
+    return res.json({message: 'Elemento eliminado', photo});
+  }
+  catch(error){
+    return res.status(400).json({ error });
+  }
+})
+
 module.exports = router;
