@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { v2: cloudinary } = require('cloudinary');
 const fs = require('fs-extra');
-const Photo = require('../models/Photo');
+const Recurso = require('../models/Recurso');
+
 
 const configCloudinary = () =>{
   cloudinary.config({
@@ -13,29 +14,29 @@ const configCloudinary = () =>{
   })
 }
 
-router.get('/galleryprincipal', async (req, res)=>{
+router.get('/equipotecnico', async (req, res)=>{
   try{
-    const gallery = await Photo.find();
-    return res.json({data: gallery});
+    const recursos = await Recurso.find();
+    return res.json({data: recursos});
   }
   catch(e){
     console.log(e)
   }
 })
 
-router.post('/galleryprincipal', async (req, res)=>{
+router.post('/equipotecnico', async (req, res)=>{
   try{
     const { title, description } = req.body;
 
     configCloudinary();
 
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'UAM/Principal Gallery'
+      folder: 'UAM/Equipo Técnico'
     });
 
-    const newPhoto = await new Photo({
-      title, 
-      description,
+    const newPhoto = await new Recurso({
+      name: title, 
+      position: description,
       imgURL: result.url,
       public_id: result.public_id,
     });
@@ -51,18 +52,19 @@ router.post('/galleryprincipal', async (req, res)=>{
   }
 });
 
-router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+router.delete('/equipotecnico/:recurso_id', async (req, res)=>{
   try{
     configCloudinary();
 
-    const { photo_id } = req.params;
-    const photo = await Photo.findByIdAndDelete(photo_id);
-    await cloudinary.uploader.destroy(photo.public_id);
-    return res.json({message: 'Elemento eliminado', photo});
+    const { recurso_id } = req.params;
+    const recurso = await Recurso.findByIdAndDelete(recurso_id);
+    await cloudinary.uploader.destroy(recurso.public_id);
+    return res.json({message: 'Elemento eliminado', recurso});
   }
   catch(error){
     return res.status(400).json({ error });
   }
 })
+
 
 module.exports = router;
