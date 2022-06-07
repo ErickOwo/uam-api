@@ -13,6 +13,7 @@ const verifyToken = require('./src/routes/validate-token');
 const messages = require('./src/routes/messages');
 const galleryPrincipal = require('./src/routes/galleryprincipal');
 const equipoTecnico = require('./src/routes/equipotecnico');
+const multimedia = require('./src/routes/multimedia');
 
 const app = express();
 
@@ -39,13 +40,14 @@ const storage = multer.diskStorage({
   }
 })
 
-app.use(multer({storage}).single('image'));
+app.use(multer({storage}).single('media'));
 
 
 app.use('/api', users);
 app.use('/api', verifyToken, messages);
 app.use('/api', verifyToken, galleryPrincipal);
 app.use('/api', verifyToken, equipoTecnico);
+app.use('/api', verifyToken, multimedia);
 
 app.listen(app.get('port'), ()=>{
   console.log(`servidor escuchando en el puesto ${app.get('port')}`)

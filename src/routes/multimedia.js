@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { v2: cloudinary } = require('cloudinary');
 const fs = require('fs-extra');
-const Photo = require('../models/Photo');
+const Video = require('../models/Video');
+const { response } = require('express');
 
 const configCloudinary = () =>{
   cloudinary.config({
@@ -13,52 +14,55 @@ const configCloudinary = () =>{
   })
 }
 
-router.get('/galleryprincipal', async (req, res)=>{
+router.get('/multimedia', async (req, res)=>{
   try{
-    const gallery = await Photo.find();
-    return res.json({data: gallery});
+    const videos = await Video.find();
+    return res.json({data: videos});
   }
   catch(e){
     console.log(e)
   }
 })
 
-router.post('/galleryprincipal', async (req, res)=>{
-  try{
+router.post('/multimedia', async (req, res)=>{
+   try{ 
     const { title, description } = req.body;
 
     configCloudinary();
 
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'UAM/Principal Gallery'
+      folder: 'UAM/Multimedia',
+      resource_type: "video",
+      eager_async: true,
+      chunk_size: 20000000,
     });
 
-    const newPhoto = await new Photo({
+    const newVideo = await new Video({
       title, 
       description,
-      imgURL: result.url,
+      videoURL: result.url,
       public_id: result.public_id,
     });
 
-    await newPhoto.save();
+    await newVideo.save();
     await fs.unlink(req.file.path);
 
     return res.json({message: 'Objeto agregado correctamente', type: 'success'});
-  }
-  catch(error){
+  } catch(error){
+    await fs.unlink(req.file.path);
     console.log(error)
-    return res.status(400).json({error})
+    return response.json(error)
   }
 });
 
-router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+router.delete('/multimedia/:video_id', async (req, res)=>{
   try{
     configCloudinary();
 
-    const { photo_id } = req.params;
-    const photo = await Photo.findByIdAndDelete(photo_id);
-    await cloudinary.uploader.destroy(photo.public_id);
-    return res.json({message: 'Elemento eliminado', photo});
+    const { video_id } = req.params;
+    const video = await Video.findByIdAndDelete(video_id);
+    await cloudinary.uploader.destroy(video.public_id);
+    return res.json({message: 'Elemento eliminado', video});
   }
   catch(error){
     return res.status(400).json({ error });
