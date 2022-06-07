@@ -51,6 +51,55 @@ router.post('/galleryprincipal', async (req, res)=>{
   }
 });
 
+router.put('/galleryprincipal', async (req, res)=>{
+  try{
+    if(!req.file) {
+      const requestBody = {
+        title: req.body.title,
+        description: req.body.description
+      }
+      await Photo.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+    } else {
+      configCloudinary();
+
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'UAM/Principal Gallery'
+      });
+      
+      const mediaToDelete = await Photo.findById(req.body.id);
+
+      const requestBody = {
+        title: req.body.title,
+        description: req.body.description,
+        imgURL: result.url,
+        public_id: result.public_id
+      }
+      await Photo.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      await cloudinary.uploader.destroy(mediaToDelete.public_id);
+      await fs.unlink(req.file.path);
+    }
+    return res.json({message: 'Objeto modificado correctamente', type: 'success'})
+  } catch(error){
+    await fs.unlink(req.file.path);
+    console.log(error)
+    return res.status(400).json({error});
+  }
+});
+
 router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
   try{
     configCloudinary();
@@ -63,6 +112,18 @@ router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
   catch(error){
     return res.status(400).json({ error });
   }
-})
+});
+
+router.get('/galleryprincipal/:photo_id', async (req, res)=>{
+  try{
+    const { photo_id } = req.params;
+    const photo = await Photo.findById(photo_id);
+    
+    return res.send(photo);
+  }
+  catch(error){
+    return res.status(400).json({ error });
+  }
+});
 
 module.exports = router;

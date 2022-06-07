@@ -44,11 +44,60 @@ router.post('/equipotecnico', async (req, res)=>{
     await newPhoto.save();
     await fs.unlink(req.file.path);
 
-    return res.json({message: 'received'});
+    return res.json({message: 'Objeto Agregado Correctamente', type: 'success'});
   }
   catch(error){
+    await fs.unlink(req.file.path);
     console.log(error)
     return res.status(400).json({error})
+  }
+});
+
+router.put('/equipotecnico', async (req, res)=>{
+  try{
+    if(!req.file) {
+      const requestBody = {
+        name: req.body.title,
+        position: req.body.description
+      }
+      await Recurso.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+    } else {
+      configCloudinary();
+
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'UAM/Equipo Técnico'
+      });
+      
+      const mediaToDelete = await Recurso.findById(req.body.id);
+
+      const requestBody = {
+        name: req.body.title,
+        position: req.body.description,
+        imgURL: result.url,
+        public_id: result.public_id
+      }
+      await Recurso.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      await cloudinary.uploader.destroy(mediaToDelete.public_id);
+      await fs.unlink(req.file.path);
+    }
+    return res.json({message: 'Objeto modificado correctamente', type: 'success'})
+  } catch(error){
+    await fs.unlink(req.file.path);
+    return res.status(400).json({error});
   }
 });
 
@@ -64,7 +113,20 @@ router.delete('/equipotecnico/:recurso_id', async (req, res)=>{
   catch(error){
     return res.status(400).json({ error });
   }
-})
+});
+
+router.get('/equipotecnico/:recurso_id', async (req, res)=>{
+  try{
+    const { recurso_id } = req.params;
+    const recurso = await Recurso.findById(recurso_id);
+    
+    return res.send(recurso);
+  }
+  catch(error){
+    return res.status(400).json({ error });
+  }
+});
+
 
 
 module.exports = router;

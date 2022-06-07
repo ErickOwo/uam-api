@@ -55,6 +55,58 @@ router.post('/multimedia', async (req, res)=>{
   }
 });
 
+router.put('/multimedia', async (req, res)=>{
+  try{
+    if(!req.file) {
+      const requestBody = {
+        title: req.body.title,
+        description: req.body.description
+      }
+      await Video.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+    } else {
+      configCloudinary();
+
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'UAM/Multimedia',
+        resource_type: "video",
+        eager_async: true,
+        chunk_size: 20000000,
+      });
+      
+      const mediaToDelete = await Video.findById(req.body.id);
+
+      const requestBody = {
+        title: req.body.title,
+        description: req.body.description,
+        videoURL: result.url,
+        public_id: result.public_id
+      }
+      await Video.findByIdAndUpdate(
+        req.body.id, 
+        requestBody,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      await cloudinary.uploader.destroy(mediaToDelete.public_id);
+      await fs.unlink(req.file.path);
+    }
+    return res.json({message: 'Objeto modificado correctamente', type: 'success'})
+  } catch(error){
+    await fs.unlink(req.file.path);
+    console.log(error)
+    return res.status(400).json({error});
+  }
+});
+
 router.delete('/multimedia/:video_id', async (req, res)=>{
   try{
     configCloudinary();
@@ -68,5 +120,17 @@ router.delete('/multimedia/:video_id', async (req, res)=>{
     return res.status(400).json({ error });
   }
 })
+
+router.get('/multimedia/:video_id', async (req, res)=>{
+  try{
+    const { video_id } = req.params;
+    const video = await Video.findById(video_id);
+    
+    return res.send(video);
+  }
+  catch(error){
+    return res.status(400).json({ error });
+  }
+});
 
 module.exports = router;
