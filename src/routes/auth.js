@@ -23,7 +23,7 @@ router.get('/user', async (req, res)=>{
   }
 });
 
-router.post('/user', async (req, res)=>{
+router.post('/signup', async (req, res)=>{
 
   const { error } = schemaRegister.validate(req.body);
   if(error) return res.status(400).json({ error: error.details[0].message });
