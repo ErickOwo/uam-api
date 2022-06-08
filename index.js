@@ -8,7 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 
 require('dotenv').config();
 
-const users = require('./src/routes/auth')
+const login = require('./src/routes/login');
+const users = require('./src/routes/auth');
 const verifyToken = require('./src/routes/validate-token');
 const messages = require('./src/routes/messages');
 const galleryPrincipal = require('./src/routes/galleryprincipal');
@@ -42,8 +43,8 @@ const storage = multer.diskStorage({
 
 app.use(multer({storage}).single('media'));
 
-
-app.use('/api', users);
+app.use('/api', login);
+app.use('/api', verifyToken, users);
 app.use('/api', verifyToken, messages);
 app.use('/api', verifyToken, galleryPrincipal);
 app.use('/api', verifyToken, equipoTecnico);

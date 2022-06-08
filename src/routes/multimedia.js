@@ -96,7 +96,8 @@ router.put('/multimedia', async (req, res)=>{
           runValidators: true,
         }
       );
-      await cloudinary.uploader.destroy(mediaToDelete.public_id);
+      
+      await cloudinary.api.delete_resources(mediaToDelete.public_id, { resource_type: "video" });
       await fs.unlink(req.file.path);
     }
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
@@ -113,8 +114,8 @@ router.delete('/multimedia/:video_id', async (req, res)=>{
 
     const { video_id } = req.params;
     const video = await Video.findByIdAndDelete(video_id);
-    await cloudinary.uploader.destroy(video.public_id);
-    return res.json({message: 'Elemento eliminado', video});
+    await cloudinary.api.delete_resources(video.public_id, { resource_type: "video" });
+    return res.json({message: 'Elemento eliminado'});
   }
   catch(error){
     return res.status(400).json({ error });
