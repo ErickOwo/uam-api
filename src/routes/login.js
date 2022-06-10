@@ -33,8 +33,8 @@ router.post('/login', async (req, res)=>{
       error: null, 
       message: "Bienvenido", 
       access_token });
-  } catch(e){
-    console.log(e)
+  } catch(error){
+    res.status(400).json(error);
   }
 })
 
