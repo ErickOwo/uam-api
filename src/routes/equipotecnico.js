@@ -1,26 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { v2: cloudinary } = require('cloudinary');
 const fs = require('fs-extra');
 const Recurso = require('../models/Recurso');
-
-
-const configCloudinary = () =>{
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true,
-  })
-}
+const { addImage, deleteImage } = require('../utils/use-media');
 
 router.get('/equipotecnico', async (req, res)=>{
   try{
-    const recursos = await Recurso.find();
-    return res.json({data: recursos});
-  }
-  catch(e){
-    console.log(e)
+    const data = await Recurso.find();
+    return res.json({ data });
+  } catch(error){
+    return res.status(404).json({error: 'Recurso no encontrado'})
   }
 })
 
@@ -28,11 +17,7 @@ router.post('/equipotecnico', async (req, res)=>{
   try{
     const { title, description } = req.body;
 
-    configCloudinary();
-
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'UAM/Equipo Técnico'
-    });
+    const result = await addImage(req.file.path, 'UAM/Equipo Técnico');
 
     const newPhoto = await new Recurso({
       name: title, 
@@ -69,11 +54,8 @@ router.put('/equipotecnico', async (req, res)=>{
         }
       );
     } else {
-      configCloudinary();
 
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'UAM/Equipo Técnico'
-      });
+      const result = await addImage(req.file.path, 'UAM/Equipo Técnico');
       
       const mediaToDelete = await Recurso.findById(req.body.id);
 
@@ -91,7 +73,7 @@ router.put('/equipotecnico', async (req, res)=>{
           runValidators: true,
         }
       );
-      await cloudinary.uploader.destroy(mediaToDelete.public_id);
+      await deleteImage(mediaToDelete.public_id);
       await fs.unlink(req.file.path);
     }
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
@@ -103,11 +85,9 @@ router.put('/equipotecnico', async (req, res)=>{
 
 router.delete('/equipotecnico/:recurso_id', async (req, res)=>{
   try{
-    configCloudinary();
-
     const { recurso_id } = req.params;
     const recurso = await Recurso.findByIdAndDelete(recurso_id);
-    await cloudinary.uploader.destroy(recurso.public_id);
+    await deleteImage(recurso.public_id);
     return res.json({message: 'Elemento eliminado', recurso});
   }
   catch(error){

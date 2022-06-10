@@ -20,7 +20,6 @@ router.get('/user', async (req, res)=>{
     if(isEmailExist) return res.send(decode);
     else throw('email no registrado');
   } catch(error){
-    console.log(error)
     return res.status(400).send(error);
   }
 });

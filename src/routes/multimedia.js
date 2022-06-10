@@ -1,26 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { v2: cloudinary } = require('cloudinary');
 const fs = require('fs-extra');
 const Video = require('../models/Video');
 const { response } = require('express');
-
-const configCloudinary = () =>{
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true,
-  })
-}
+const { addVideo, deleteVideo } = require('../utils/use-media');
 
 router.get('/multimedia', async (req, res)=>{
   try{
-    const videos = await Video.find();
-    return res.json({data: videos});
-  }
-  catch(e){
-    console.log(e)
+    const data = await Video.find();
+    return res.json({data});
+  } catch(error){
+    return res.status(404).json({error: 'Recurso no encontrado'})
   }
 })
 
@@ -28,14 +18,7 @@ router.post('/multimedia', async (req, res)=>{
    try{ 
     const { title, description } = req.body;
 
-    configCloudinary();
-
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'UAM/Multimedia',
-      resource_type: "video",
-      eager_async: true,
-      chunk_size: 20000000,
-    });
+    const result = await addVideo(req.file.path, 'UAM/Multimedia');
 
     const newVideo = await new Video({
       title, 
@@ -71,14 +54,8 @@ router.put('/multimedia', async (req, res)=>{
         }
       );
     } else {
-      configCloudinary();
 
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'UAM/Multimedia',
-        resource_type: "video",
-        eager_async: true,
-        chunk_size: 20000000,
-      });
+      const result = await addVideo(req.file.path, 'UAM/Multimedia');
       
       const mediaToDelete = await Video.findById(req.body.id);
 
@@ -97,7 +74,7 @@ router.put('/multimedia', async (req, res)=>{
         }
       );
       
-      await cloudinary.api.delete_resources(mediaToDelete.public_id, { resource_type: "video" });
+      await deleteVideo(mediaToDelete.public_id);
       await fs.unlink(req.file.path);
     }
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
@@ -110,11 +87,10 @@ router.put('/multimedia', async (req, res)=>{
 
 router.delete('/multimedia/:video_id', async (req, res)=>{
   try{
-    configCloudinary();
 
     const { video_id } = req.params;
     const video = await Video.findByIdAndDelete(video_id);
-    await cloudinary.api.delete_resources(video.public_id, { resource_type: "video" });
+    await deleteVideo(video.public_id);
     return res.json({message: 'Elemento eliminado'});
   }
   catch(error){

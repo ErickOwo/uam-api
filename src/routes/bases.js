@@ -1,27 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs-extra');
-const Photo = require('../models/Photo');
+const Base = require('../models/Base');
 const { addImage, deleteImage } = require('../utils/use-media');
 
-router.get('/galleryprincipal', async (req, res)=>{
+router.get('/bases', async (req, res)=>{
   try{
-    const data = await Photo.find();
+    const data = await Base.find();
     return res.json({ data });
   } catch(error){
     return res.status(404).json({error: 'Recurso no encontrado'})
   }
 })
 
-router.post('/galleryprincipal', async (req, res)=>{
+router.post('/bases', async (req, res)=>{
   try{
-    const { title, description } = req.body;
-
-    const result = await addImage(req.file.path, 'UAM/Principal Gallery')
-
-    const newObject = await new Photo({
+    const { 
       title, 
       description,
+      place,
+      parrafs } = req.body;
+
+    const result = await addImage(req.file.path, 'UAM/Bases')
+
+    const newObject = await new Base({
+      title, 
+      description,
+      place,
+      parrafs: parrafs ? parrafs.split('\r\n').filter(item =>{
+        return item != ""
+      }) : [],
       imgURL: result.url,
       public_id: result.public_id,
     });
@@ -37,14 +45,18 @@ router.post('/galleryprincipal', async (req, res)=>{
   }
 });
 
-router.put('/galleryprincipal', async (req, res)=>{
+router.put('/bases', async (req, res)=>{
   try{
     if(!req.file) {
       const requestBody = {
         title: req.body.title,
-        description: req.body.description
+        description: req.body.description,
+        place: req.body.place,
+        parrafs: req.body.parrafs ? req.body.parrafs.split('\r\n').filter(item =>{
+          return item != ""
+        }) : [],
       }
-      await Photo.findByIdAndUpdate(
+      await Base.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -54,18 +66,22 @@ router.put('/galleryprincipal', async (req, res)=>{
       );
     } else {
 
-      const result = await addImage(req.file.path, 'UAM/Principal Gallery');
+      const result = await addImage(req.file.path, 'UAM/Bases');
       
-      const mediaToDelete = await Photo.findById(req.body.id);
+      const mediaToDelete = await Base.findById(req.body.id);
 
       const requestBody = {
         title: req.body.title,
         description: req.body.description,
+        place: req.body.place,
+        parrafs: req.body.parrafs ? req.body.parrafs.split('\r\n').filter(item =>{
+          return item != ""
+        }) : [],
         imgURL: result.url,
         public_id: result.public_id
       }
 
-      await Photo.findByIdAndUpdate(
+      await Base.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -78,34 +94,34 @@ router.put('/galleryprincipal', async (req, res)=>{
     }
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
   } catch(error){
-    await fs.unlink(req.file.path);
+    if(fs.unlink) await fs.unlink(req.file.path);
     console.log(error)
     return res.status(400).json({error});
   }
 });
 
-router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+router.delete('/bases/:base_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findByIdAndDelete(photo_id);
-    await deleteImage(photo.public_id);
-    return res.json({message: 'Elemento eliminado', photo});
+    const { base_id } = req.params;
+    const object = await Base.findByIdAndDelete(base_id);
+    await deleteImage(object.public_id);
+    return res.json({message: 'Elemento eliminado', object});
   }
   catch(error){
     return res.status(400).json({ error });
   }
 });
 
-router.get('/galleryprincipal/:photo_id', async (req, res)=>{
+router.get('/bases/:base_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findById(photo_id);
+    const { base_id } = req.params;
+    const object = await Base.findById(base_id);
     
-    return res.send(photo);
+    return res.send(object);
   }
   catch(error){
     return res.status(400).json({ error });
   }
 });
 
-module.exports = router;
+module.exports = router

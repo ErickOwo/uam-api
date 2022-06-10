@@ -1,27 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs-extra');
-const Photo = require('../models/Photo');
+const Cooperation = require('../models/Cooperation');
 const { addImage, deleteImage } = require('../utils/use-media');
 
-router.get('/galleryprincipal', async (req, res)=>{
+router.get('/cooperation', async (req, res)=>{
   try{
-    const data = await Photo.find();
+    const data = await Cooperation.find();
     return res.json({ data });
   } catch(error){
     return res.status(404).json({error: 'Recurso no encontrado'})
   }
 })
 
-router.post('/galleryprincipal', async (req, res)=>{
+router.post('/cooperation', async (req, res)=>{
   try{
-    const { title, description } = req.body;
+    const { title, description, linkcooperation } = req.body;
 
-    const result = await addImage(req.file.path, 'UAM/Principal Gallery')
+    const result = await addImage(req.file.path, 'UAM/Cooperation')
 
-    const newObject = await new Photo({
+    const newObject = await new Cooperation({
       title, 
       description,
+      linkcooperation,
       imgURL: result.url,
       public_id: result.public_id,
     });
@@ -37,14 +38,16 @@ router.post('/galleryprincipal', async (req, res)=>{
   }
 });
 
-router.put('/galleryprincipal', async (req, res)=>{
+router.put('/cooperation', async (req, res)=>{
   try{
     if(!req.file) {
       const requestBody = {
         title: req.body.title,
-        description: req.body.description
+        description: req.body.description,
+        linkcooperation: req.body.linkcooperation
+
       }
-      await Photo.findByIdAndUpdate(
+      await Cooperation.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -54,18 +57,19 @@ router.put('/galleryprincipal', async (req, res)=>{
       );
     } else {
 
-      const result = await addImage(req.file.path, 'UAM/Principal Gallery');
+      const result = await addImage(req.file.path, 'UAM/Cooperation');
       
-      const mediaToDelete = await Photo.findById(req.body.id);
+      const mediaToDelete = await Cooperation.findById(req.body.id);
 
       const requestBody = {
         title: req.body.title,
         description: req.body.description,
+        linkcooperation: req.body.linkcooperation,
         imgURL: result.url,
         public_id: result.public_id
       }
 
-      await Photo.findByIdAndUpdate(
+      await Cooperation.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -84,24 +88,24 @@ router.put('/galleryprincipal', async (req, res)=>{
   }
 });
 
-router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+router.delete('/cooperation/:cooperation_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findByIdAndDelete(photo_id);
-    await deleteImage(photo.public_id);
-    return res.json({message: 'Elemento eliminado', photo});
+    const { cooperation_id } = req.params;
+    const cooperation = await Cooperation.findByIdAndDelete(cooperation_id);
+    await deleteImage(cooperation.public_id);
+    return res.json({message: 'Elemento eliminado', cooperation});
   }
   catch(error){
     return res.status(400).json({ error });
   }
 });
 
-router.get('/galleryprincipal/:photo_id', async (req, res)=>{
+router.get('/cooperation/:cooperation_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findById(photo_id);
+    const { cooperation_id } = req.params;
+    const cooperation = await Cooperation.findById(cooperation_id);
     
-    return res.send(photo);
+    return res.send(cooperation);
   }
   catch(error){
     return res.status(400).json({ error });
