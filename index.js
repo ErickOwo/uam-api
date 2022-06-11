@@ -22,6 +22,7 @@ const equipoTecnico = require('./src/routes/equipotecnico');
 const multimedia = require('./src/routes/multimedia');
 const bases = require('./src/routes/bases');
 const cooperation = require('./src/routes/cooperation');
+const programas = require('./src/routes/programas');
 
 // set port
 
@@ -61,6 +62,7 @@ app.use('/api', verifyToken, bases);
 app.use('/api', verifyToken, equipoTecnico);
 app.use('/api', verifyToken, multimedia);
 app.use('/api', verifyToken, cooperation);
+app.use('/api', verifyToken, programas);
 
 // app listening
 app.listen(app.get('port'), ()=>{
