@@ -15,13 +15,26 @@ router.get('/programas', async (req, res)=>{
 
 router.post('/programas', async (req, res)=>{
   try{
-    const { title, description } = req.body;
+    const { title, description, info } = req.body;
 
-    const result = await addImage(req.file.path, 'UAM/Principal Gallery')
+    const infoBase = JSON.parse(info).data.map(elemento=> {
+      const elementoParseado = JSON.parse(elemento);
+      const object = {
+        subtitle: elementoParseado.subtitle,
+        text: JSON.stringify({"parrafs": elementoParseado.text.split('\n').filter(item =>{
+          return item != ""
+        })}),
+        type: elementoParseado.type
+      }
+      return JSON.stringify(object)
+    });
+
+    const result = await addImage(req.file.path, 'UAM/Programas')
 
     const newObject = await new Programa({
       title, 
       description,
+      textContent: infoBase,
       imgURL: result.url,
       public_id: result.public_id,
     });
@@ -37,14 +50,27 @@ router.post('/programas', async (req, res)=>{
   }
 });
 
-router.put('/galleryprincipal', async (req, res)=>{
+router.put('/programas', async (req, res)=>{
   try{
+    const infoBase = JSON.parse(req.body.info).data.map(elemento=> {
+      const elementoParseado = JSON.parse(elemento);
+      const object = {
+        subtitle: elementoParseado.subtitle,
+        text: JSON.stringify({"parrafs": elementoParseado.text.split('\n').filter(item =>{
+          return item != ""
+        })}),
+        type: elementoParseado.type
+      }
+      return JSON.stringify(object)
+    });
+
     if(!req.file) {
       const requestBody = {
         title: req.body.title,
-        description: req.body.description
+        description: req.body.description,
+        textContent: infoBase
       }
-      await Photo.findByIdAndUpdate(
+      await Programa.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -54,18 +80,19 @@ router.put('/galleryprincipal', async (req, res)=>{
       );
     } else {
 
-      const result = await addImage(req.file.path, 'UAM/Principal Gallery');
+      const result = await addImage(req.file.path, 'UAM/Programas');
       
-      const mediaToDelete = await Photo.findById(req.body.id);
+      const mediaToDelete = await Programa.findById(req.body.id);
 
       const requestBody = {
         title: req.body.title,
         description: req.body.description,
+        textContent: infoBase,
         imgURL: result.url,
         public_id: result.public_id
       }
 
-      await Photo.findByIdAndUpdate(
+      await Programa.findByIdAndUpdate(
         req.body.id, 
         requestBody,
         {
@@ -84,26 +111,27 @@ router.put('/galleryprincipal', async (req, res)=>{
   }
 });
 
-router.delete('/galleryprincipal/:photo_id', async (req, res)=>{
+router.delete('/programas/:programa_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findByIdAndDelete(photo_id);
-    await deleteImage(photo.public_id);
-    return res.json({message: 'Elemento eliminado', photo});
+    const { programa_id } = req.params;
+    const programa = await Programa.findByIdAndDelete(programa_id);
+    await deleteImage(programa.public_id);
+    return res.json({message: 'Elemento eliminado', programa});
   }
   catch(error){
     return res.status(400).json({ error });
   }
 });
 
-router.get('/galleryprincipal/:photo_id', async (req, res)=>{
+router.get('/programas/:programa_id', async (req, res)=>{
   try{
-    const { photo_id } = req.params;
-    const photo = await Photo.findById(photo_id);
+    const { programa_id } = req.params;
+    const programa = await Programa.findById(programa_id);
     
-    return res.send(photo);
+    return res.send(programa);
   }
   catch(error){
+    console.log(error)
     return res.status(400).json({ error });
   }
 });

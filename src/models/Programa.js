@@ -8,6 +8,9 @@ const ProgramaSchema = new Schema({
   description: {
     type: String,
   },
+  textContent: {
+    type: Array,
+  },
   imgURL: {
     type: String,
   },
