@@ -45,7 +45,6 @@ router.post('/programas', async (req, res)=>{
     return res.json({message: 'Objeto agregado correctamente', type: 'success'});
   }
   catch(error){
-    console.log(error)
     return res.status(400).json({error})
   }
 });
@@ -106,7 +105,6 @@ router.put('/programas', async (req, res)=>{
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
   } catch(error){
     await fs.unlink(req.file.path);
-    console.log(error)
     return res.status(400).json({error});
   }
 });
@@ -131,7 +129,6 @@ router.get('/programas/:programa_id', async (req, res)=>{
     return res.send(programa);
   }
   catch(error){
-    console.log(error)
     return res.status(400).json({ error });
   }
 });

@@ -13,9 +13,9 @@ const schemaRegister = Joi.object({
 })
 
 router.get('/user', async (req, res)=>{
-  const token = req.header('Authorization');
   try{
-    const decode = jwt.decode(token)
+    const token = req.header('Authorization');
+    const decode = jwt.decode(token);
     const isEmailExist = await User.findOne({email: decode.email});
     if(isEmailExist) return res.send(decode);
     else throw('email no registrado');

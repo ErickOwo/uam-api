@@ -33,7 +33,6 @@ router.post('/cooperation', async (req, res)=>{
     return res.json({message: 'Objeto agregado correctamente', type: 'success'});
   }
   catch(error){
-    console.log(error)
     return res.status(400).json({error})
   }
 });
@@ -83,7 +82,6 @@ router.put('/cooperation', async (req, res)=>{
     return res.json({message: 'Objeto modificado correctamente', type: 'success'})
   } catch(error){
     await fs.unlink(req.file.path);
-    console.log(error)
     return res.status(400).json({error});
   }
 });
