@@ -33,7 +33,6 @@ router.post('/equipotecnico', async (req, res)=>{
   }
   catch(error){
     await fs.unlink(req.file.path);
-    console.log(error)
     return res.status(400).json({error})
   }
 });
