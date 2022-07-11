@@ -43,9 +43,9 @@ router.post('/signup', async (req, res)=>{
 
     user.save();
 
-    res.json({ error: null, message: "usuario agregado correctamente"});
+    return res.json({ error: null, message: "usuario agregado correctamente"});
   } catch(error) {
-    res.status(400).json(error);
+    return res.status(400).json(error);
   }
 });
 
